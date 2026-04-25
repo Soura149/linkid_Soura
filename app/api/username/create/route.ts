@@ -1,37 +1,40 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { validateUsername } from "@/lib/validations/username";
 
-export async function GET() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-        return NextResponse.json([], { status: 401 });
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { username, userId } = body;
+
+    const validation = validateUsername(username);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
+    const existing = await prisma.user.findUnique({
+      where: { username },
     });
 
-    if (!user) return NextResponse.json([]);
-
-    const links = await prisma.link.findMany({
-        where: { userId: user.id },
-        orderBy: { order: "asc" },
-    });
-}
-export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Username already taken" },
+        { status: 409 }
+      );
     }
 
-    const { username } = await req.json();
-
-    await prisma.user.update({
-        where: { email: session.user.email },
-        data: { username: username.toLowerCase() },
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { username },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, user }, { status: 200 });
+
+  } catch (error: any) {
+    if (error.code === "P2002" && error.meta?.target?.includes("username")) {
+      return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+    }
+    console.error("Username create error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
