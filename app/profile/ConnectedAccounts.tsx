@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { Account } from "next-auth";
+import type { Account } from "@prisma/client";
 
 export function ConnectedAccounts({
     accounts,
