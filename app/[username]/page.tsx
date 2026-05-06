@@ -7,18 +7,45 @@ import { ProfileFooter } from "./ProfileFooter";
 
 import type { Link } from "./types/type";
 
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
-    const { username } = await params;
+export async function generateMetadata(
+  { params }: { params: Promise<{ username: string }> }
+): Promise<Metadata> {
+  const { username } = await params;
 
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      name: true,
+      bio: true,
+      image: true,
+    },
+  });
+
+  if (!user) {
     return {
-        title: `${username} | LinkID`,
-        description: `Check out ${username}'s LinkID profile.`,
-        openGraph: {
-            title: `${username} | LinkID`,
-            description: `Check out ${username}'s LinkID profile.`,
-            url: `https://linkid.vercel.app/${username}`,
-        },
+      title: 'Profile not found | LinkID',
+      description: 'This profile does not exist.',
     };
+  }
+
+  return {
+    title: `${user.name} | LinkID`,
+    description: user.bio || `Check out ${user.name}'s LinkID profile`,
+    openGraph: {
+      title: `${user.name} | LinkID`,
+      description: user.bio || `Check out ${user.name}'s LinkID profile`,
+      url: `https://linkid.qzz.io/${username}`,
+      siteName: 'LinkID',
+      images: user.image ? [{ url: user.image, width: 400, height: 400 }] : [],
+      type: 'profile',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${user.name} | LinkID`,
+      description: user.bio || `Check out ${user.name}'s LinkID profile`,
+      images: user.image ? [user.image] : [],
+    },
+  };
 }
 
 export default async function PublicProfile({
