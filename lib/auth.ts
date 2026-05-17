@@ -7,6 +7,28 @@ import type { NextAuthOptions } from "next-auth";
 
 import prisma from "@/lib/prisma";
 
+const oauthProviders = new Set(["google", "github"]);
+
+function getOAuthProfileImage(profile: unknown): string | null {
+    if (!profile || typeof profile !== "object") return null;
+
+    const data = profile as Record<string, unknown>;
+    const candidates = [
+        data.image,
+        data.picture,
+        data.avatar_url,
+        data.avatarUrl,
+    ];
+
+    for (const candidate of candidates) {
+        if (typeof candidate === "string" && candidate.trim().length > 0) {
+            return candidate;
+        }
+    }
+
+    return null;
+}
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
 
@@ -66,9 +88,35 @@ export const authOptions: NextAuthOptions = {
     },
 
     callbacks: {
-        async jwt({ token, trigger, session, user }) {
+        async jwt({ token, trigger, session, user, account, profile }) {
             if (trigger === "update" && "image" in (session ?? {})) {
                 token.image = session.image ?? null;
+            }
+
+            if (account?.provider && oauthProviders.has(account.provider)) {
+                const oauthImage =
+                    getOAuthProfileImage(profile) ??
+                    (typeof user?.image === "string" ? user.image : null);
+
+                if (oauthImage) {
+                    const userId = user?.id ?? token.sub;
+                    if (userId) {
+                        const existing = await prisma.user.findUnique({
+                            where: { id: userId },
+                            select: { image: true },
+                        });
+
+                        if (!existing?.image) {
+                            await prisma.user.update({
+                                where: { id: userId },
+                                data: { image: oauthImage },
+                            });
+                            token.image = oauthImage;
+                        } else if (!token.image) {
+                            token.image = existing.image;
+                        }
+                    }
+                }
             }
             if (!token.image && user && "image" in user && user.image) {
                 token.image = user.image;
