@@ -101,19 +101,23 @@ export const authOptions: NextAuthOptions = {
                 if (oauthImage) {
                     const userId = user?.id ?? token.sub;
                     if (userId) {
-                        const existing = await prisma.user.findUnique({
-                            where: { id: userId },
-                            select: { image: true },
-                        });
-
-                        if (!existing?.image) {
-                            await prisma.user.update({
+                        try {
+                            const existing = await prisma.user.findUnique({
                                 where: { id: userId },
-                                data: { image: oauthImage },
+                                select: { image: true },
                             });
-                            token.image = oauthImage;
-                        } else if (!token.image) {
-                            token.image = existing.image;
+
+                            if (!existing?.image) {
+                                await prisma.user.update({
+                                    where: { id: userId },
+                                    data: { image: oauthImage },
+                                });
+                                token.image = oauthImage;
+                            } else if (!token.image) {
+                                token.image = existing.image;
+                            }
+                        } catch (error) {
+                            console.error("OAuth avatar sync failed", error);
                         }
                     }
                 }
