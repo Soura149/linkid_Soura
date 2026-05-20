@@ -6,9 +6,9 @@ import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { Link2, Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-    { href: "#features", label: "Features", id: "features" },
-    { href: "#how", label: "How it works", id: "how" },
-    { href: "#demo", label: "Demo", id: "demo" },
+    { href: "/#features", label: "Features", id: "features" },
+    { href: "/#how", label: "How it works", id: "how" },
+    { href: "/#demo", label: "Demo", id: "demo" },
 ];
 
 export function Navbar() {
@@ -88,7 +88,7 @@ export function Navbar() {
                     {/* Desktop center nav */}
                     <nav className="hidden items-center gap-1 md:flex">
                         {NAV_LINKS.map(({ href, label, id }) => (
-                            <a
+                            <Link
                                 key={id}
                                 href={href}
                                 className={`relative rounded-full px-4 py-1.5 text-sm font-medium transition-colors duration-300
@@ -104,7 +104,7 @@ export function Navbar() {
                                 }`}
                             >
                                 {label}
-                            </a>
+                            </Link>
                         ))}
                     </nav>
 
@@ -143,7 +143,7 @@ export function Navbar() {
                     <div className="px-3 pb-4 pt-3">
                         <nav className="mb-3 flex flex-col gap-1">
                             {NAV_LINKS.map(({ href, label, id }) => (
-                                <a
+                                <Link
                                     key={id}
                                     href={href}
                                     onClick={() => setMobileOpen(false)}
@@ -154,7 +154,7 @@ export function Navbar() {
                                     }`}
                                 >
                                     {label}
-                                </a>
+                                </Link>
                             ))}
                         </nav>
                         <Button
