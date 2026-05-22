@@ -421,7 +421,6 @@ function DemoRow({
   url: string;
   href?: string;
 }) {
-
   const destination = href ? href : `https://${url}`;
   return (
     <Link href={destination} target="_blank" rel="noopener noreferrer" className="group block">

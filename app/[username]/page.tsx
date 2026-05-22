@@ -5,42 +5,40 @@ import { ProfileCard } from "./ProfileCard";
 import { ProfileFooter } from "./ProfileFooter";
 import { resolveUserByUsername } from "@/lib/userLookup";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
-  const { username } = await params;
-  let resolved = null;
-  try {
-    resolved = await resolveUserByUsername(username);
-  } catch {
-    resolved = null;
-  }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
+    try {
+        const { username } = await params;
+        const resolved = await resolveUserByUsername(username);
 
-  if (!resolved) {
-    return {
-      title: `${username} | LinkID`,
-      description: `Check out ${username}'s LinkID profile.`,
-      openGraph: {
-        title: `${username} | LinkID`,
-        description: `Check out ${username}'s LinkID profile.`,
-        url: `https://linkid.vercel.app/${username}`,
-      },
-    };
-  }
+        if (!resolved) {
+            return {
+                title: `${username} | LinkID`,
+                description: `Check out ${username}'s LinkID profile.`,
+                openGraph: {
+                    title: `${username} | LinkID`,
+                    description: `Check out ${username}'s LinkID profile.`,
+                    url: `https://linkid.vercel.app/${username}`,
+                },
+            };
+        }
 
-  const canonicalUsername = resolved.canonicalUsername ?? username;
+        const canonicalUsername = resolved.canonicalUsername ?? username;
 
-  return {
-    title: `${canonicalUsername} | LinkID`,
-    description: `Check out ${canonicalUsername}'s LinkID profile.`,
-    openGraph: {
-      title: `${canonicalUsername} | LinkID`,
-      description: `Check out ${canonicalUsername}'s LinkID profile.`,
-      url: `https://linkid.vercel.app/${canonicalUsername}`,
-    },
-  };
+        return {
+            title: `${canonicalUsername} | LinkID`,
+            description: `Check out ${canonicalUsername}'s LinkID profile.`,
+            openGraph: {
+                title: `${canonicalUsername} | LinkID`,
+                description: `Check out ${canonicalUsername}'s LinkID profile.`,
+                url: `https://linkid.vercel.app/${canonicalUsername}`,
+            },
+        };
+    } catch {
+        return {
+            title: "LinkID",
+            description: "Check out profiles on LinkID.",
+        };
+    }
 }
 
 export default async function PublicProfile({

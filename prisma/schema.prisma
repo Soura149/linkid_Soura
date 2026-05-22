@@ -49,7 +49,7 @@ model Link {
   platform  String
   label     String
   url       String
-  order     Int      @default(0)
+  position  Int      @default(0)
   clicks    Int      @default(0)
   isPublic  Boolean  @default(true)
   userId    String
