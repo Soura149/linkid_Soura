@@ -25,22 +25,29 @@ export default function DashboardClient({
         setShowAdd(false);
     }
 
-    async function updateLink(id: string, url: string) {
+    async function updateLink(id: string, url: string, label?: string) {
         const csrfToken = await getCsrfToken();
 
-        await fetch(`/api/links/${id}`, {
+        const response = await fetch(`/api/links/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 "x-csrf-token": csrfToken,
             },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url, label }),
         });
+
+        if (!response.ok) {
+            const data = await response.json();
+            toast.error(data.error ?? "Failed to update link");
+            return;
+        }
+
         toast.success("Link updated");
 
         setLinks((prev) =>
             prev.map((l) =>
-                l.id === id ? { ...l, url } : l
+                l.id === id ? { ...l, url, label: label !== undefined ? label : l.label } : l
             )
         );
     }

@@ -46,13 +46,22 @@ const POPULAR_PLATFORMS = [
  */
 export default function AddLinkBox({
     onAdded,
+    onCancel,
 }: {
     onAdded: (link: ProfileLink) => void;
+    onCancel?: () => void;
 }) {
     const [url, setUrl] = useState("");
     const [label, setLabel] = useState("");
     const [platform, setPlatform] = useState("");
     const [loading, setLoading] = useState(false);
+
+    function handleCancel() {
+        setUrl("");
+        setLabel("");
+        setPlatform("");
+        onCancel?.();
+    }
 
     /**
      * Handles the form submission to add a link.
@@ -143,9 +152,14 @@ export default function AddLinkBox({
                 onChange={(e) => setUrl(e.target.value)}
             />
 
-            <Button onClick={submit} disabled={loading} className="w-full">
-                {loading ? "Adding…" : "Add link"}
-            </Button>
+            <div className="flex gap-2">
+                <Button onClick={handleCancel} variant="outline" disabled={loading} className="flex-1">
+                    Cancel
+                </Button>
+                <Button onClick={submit} disabled={loading} className="flex-1">
+                    {loading ? "Adding…" : "Add link"}
+                </Button>
+            </div>
         </div>
     );
 }

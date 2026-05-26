@@ -20,6 +20,7 @@ export async function PUT(
     const body = await req.json();
     const url = body?.url;
     const isPublic = body?.isPublic;
+    const label = body?.label;
 
     const link = await prisma.link.findUnique({
         where: { id },
@@ -30,7 +31,18 @@ export async function PUT(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const data: { url?: string; isPublic?: boolean } = {};
+    const data: { url?: string; isPublic?: boolean; label?: string } = {};
+
+    if (typeof label === "string") {
+        const finalLabel = label.trim();
+        if (!finalLabel) {
+            return NextResponse.json(
+                { error: "Please enter a name for this link" },
+                { status: 400 }
+            );
+        }
+        data.label = finalLabel;
+    }
 
     if (typeof url === "string") {
         const validation = validateUrlBackend(url);

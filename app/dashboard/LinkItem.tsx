@@ -33,13 +33,14 @@ export function LinkItem({
     dragAttributes?: DraggableAttributes;
     link: ProfileLink;
     username: string;
-    onUpdate: (id: string, url: string) => Promise<void>;
+    onUpdate: (id: string, url: string, label?: string) => Promise<void>;
     onToggleVisibility: (id: string, isPublic: boolean) => Promise<void>;
     onDelete: (id: string) => Promise<void>;
 }) {
     const Icon = PLATFORM_ICONS[link.platform] ?? Globe;
     const [editing, setEditing] = useState(false);
     const [url, setUrl] = useState(link.url);
+    const [label, setLabel] = useState(link.label || "");
     const [copied, setCopied] = useState(false);
 
     function copy() {
@@ -57,7 +58,12 @@ export function LinkItem({
             return toast.error(validation.error);
         }
 
-        await onUpdate(link.id, url);
+        const trimmedLabel = label.trim();
+        if (!trimmedLabel) {
+            return toast.error("Please enter a display name for this link");
+        }
+
+        await onUpdate(link.id, url, trimmedLabel);
         setEditing(false);
     }
 
@@ -118,7 +124,14 @@ export function LinkItem({
                     <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => setEditing((v) => !v)}
+                        onClick={() => {
+                            if (editing) {
+                                setUrl(link.url);
+                                setLabel(link.label || "");
+                            }
+                            setEditing((v) => !v);
+                        }}
+                        aria-label={editing ? "Cancel editing" : "Edit link"}
                     >
                         {editing ? (
                             <X className="h-4 w-4" />
@@ -143,15 +156,24 @@ export function LinkItem({
             </div>
 
             {editing && (
-                <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        className="flex-1 px-2 py-4 text-sm"
-                    />
+                <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row flex-1">
+                        <Input
+                            placeholder="Link Display Name"
+                            value={label}
+                            onChange={(e) => setLabel(e.target.value)}
+                            className="flex-1 px-2 py-4 text-sm"
+                        />
+                        <Input
+                            placeholder="Paste your link here..."
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            className="flex-1 px-2 py-4 text-sm"
+                        />
+                    </div>
 
                     <div className="flex gap-2 justify-end">
-                        <Button size="icon" onClick={save}>
+                        <Button size="icon" onClick={save} aria-label="Save changes">
                             <Check className="h-4 w-4" />
                         </Button>
 
@@ -159,6 +181,7 @@ export function LinkItem({
                             size="icon"
                             variant="destructive"
                             onClick={() => onDelete(link.id)}
+                            aria-label="Delete link"
                         >
                             <Trash className="h-4 w-4" />
                         </Button>

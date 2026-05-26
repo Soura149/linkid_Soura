@@ -8,21 +8,33 @@ import { Label } from "@/components/ui/label";
 import { getCsrfToken } from "@/lib/csrfClient";
 import { DashboardNavbar } from "../components/DashboardNavbar";
 import { Check } from "lucide-react";
+import { validateUsername } from "@/lib/validations/username";
 
 
 export default function CreateLinkId() {
     const [username, setUsername] = useState("");
     const [available, setAvailable] = useState<null | boolean>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [checking, setChecking] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
 
     const checkUsername = useCallback(async (value: string) => {
         setUsername(value);
+        setError(null);
 
         if (value.length < 3) {
             setAvailable(null);
+            setSuggestions([]);
+            setChecking(false);
+            return;
+        }
+
+        const validation = validateUsername(value);
+        if (!validation.valid) {
+            setAvailable(false);
+            setError(validation.error ?? "Invalid username");
             setSuggestions([]);
             setChecking(false);
             return;
@@ -41,8 +53,13 @@ export default function CreateLinkId() {
             
             if (abortController.signal.aborted) return;
             
-            setAvailable(data.available);
-            setSuggestions(data.suggestions ?? []);
+            if (data.available) {
+                setAvailable(true);
+            } else {
+                setAvailable(false);
+                setError(data.error ?? "Username already taken");
+                setSuggestions(data.suggestions ?? []);
+            }
         } catch (e) {
             if (abortController.signal.aborted) return;
             
@@ -59,20 +76,31 @@ export default function CreateLinkId() {
     async function createLinkId() {
         setLoading(true);
         const csrfToken = await getCsrfToken();
-        const res = await fetch("/api/username/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken,
-            },
-            body: JSON.stringify({ username }),
-        });
-        setLoading(false);
-        if (!res.ok) {
+        try {
+            const res = await fetch("/api/username/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-csrf-token": csrfToken,
+                },
+                body: JSON.stringify({ username }),
+            });
+            setLoading(false);
+            if (!res.ok) {
+                try {
+                    const data = await res.json();
+                    alert(data.error || "Failed to create LinkID. Please try again.");
+                } catch {
+                    alert("Failed to create LinkID. Please try again.");
+                }
+                return;
+            }
+            window.location.reload();
+        } catch (error) {
+            setLoading(false);
+            console.error("Failed to create LinkID:", error);
             alert("Failed to create LinkID. Please try again.");
-            return;
         }
-        window.location.reload();
     }
 
     return (
@@ -117,7 +145,7 @@ export default function CreateLinkId() {
 
                             {available === false && (
                                 <div className="space-y-2">
-                                    <p className="text-sm text-red-500">Username already taken</p>
+                                    <p className="text-sm text-red-500">{error || "Username already taken"}</p>
                                     {suggestions.length > 0 && (
                                         <div className="space-y-1">
                                             <p className="text-xs text-muted-foreground">Suggestions:</p>
