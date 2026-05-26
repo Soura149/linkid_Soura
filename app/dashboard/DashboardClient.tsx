@@ -7,7 +7,7 @@ import { LinksSection } from "./LinksSection";
 import type { Link as ProfileLink } from "@/app/[username]/types/type";
 import { LinkIdCard } from "./LinkIdCard";
 import { AnalyticsOverview } from "./AnalyticsOverview";
-import { detectPlatform, normalizeUrl } from "@/lib/platforms";
+import { detectPlatform, normalizeUrl, slugifyPlatform } from "@/lib/platforms";
 
 export default function DashboardClient({
     username,
@@ -48,15 +48,12 @@ export default function DashboardClient({
             toast.success("Link updated");
 
             const normalizedUrl = normalizeUrl(url);
-            const detected = platform && platform !== "website" ? platform : detectPlatform(normalizedUrl);
+            const detected = platform ? platform : detectPlatform(normalizedUrl);
             let calculatedPlatform: string;
             if (detected === "website") {
-                const activeLabel = label !== undefined ? label : "";
-                calculatedPlatform = activeLabel
-                    .toLowerCase()
-                    .trim()
-                    .replace(/\s+/g, "-")
-                    .replace(/[^a-z0-9-]/g, "");
+                const currentLink = links.find((l) => l.id === id);
+                const activeLabel = label !== undefined ? label : (currentLink?.label || "");
+                calculatedPlatform = slugifyPlatform(activeLabel);
             } else {
                 calculatedPlatform = detected;
             }

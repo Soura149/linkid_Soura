@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
-import { validatePlatformUrl, detectPlatform } from "@/lib/platforms";
+import { validatePlatformUrl, detectPlatform, slugifyPlatform, type Platform } from "@/lib/platforms";
 import { validateUrlBackend } from "@/lib/urlValidation";
 import { PLATFORM_ICONS } from "@/lib/platformIcons";
 
@@ -26,7 +27,7 @@ export async function PUT(
 
     const rawExplicitPlatform = typeof platform === "string" ? platform.trim() : null;
     const explicitPlatform = rawExplicitPlatform && Object.keys(PLATFORM_ICONS).includes(rawExplicitPlatform)
-        ? rawExplicitPlatform
+        ? rawExplicitPlatform as Platform
         : null;
 
     const link = await prisma.link.findUnique({
@@ -85,11 +86,7 @@ export async function PUT(
     let finalPlatform: string;
 
     if (detectedPlatform === "website") {
-        finalPlatform = activeLabel
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "");
+        finalPlatform = slugifyPlatform(activeLabel);
 
         if (!finalPlatform) {
             return NextResponse.json(
@@ -121,9 +118,8 @@ export async function PUT(
 
         return NextResponse.json({ success: true });
     } catch (err: unknown) {
-        const error = err as { code?: string };
-        if (error?.code === "P2002") {
-            const labelForErrorMessage = typeof label === "string" ? label.trim() : link.label;
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            const labelForErrorMessage = (typeof label === "string" ? label.trim() : link.label) || "custom link";
             return NextResponse.json(
                 { error: `You already added your ${labelForErrorMessage} link.` },
                 { status: 409 }

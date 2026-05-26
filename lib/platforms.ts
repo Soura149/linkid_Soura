@@ -66,3 +66,12 @@ export function validatePlatformUrl(
 
     return PLATFORM_PATTERNS[platform].test(normalized);
 }
+
+export function slugifyPlatform(label: string | null | undefined): string {
+    if (!label) return "";
+    return label
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+}

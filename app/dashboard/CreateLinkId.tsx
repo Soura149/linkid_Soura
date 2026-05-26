@@ -75,8 +75,8 @@ export default function CreateLinkId() {
 
     async function createLinkId() {
         setLoading(true);
-        const csrfToken = await getCsrfToken();
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch("/api/username/create", {
                 method: "POST",
                 headers: {
@@ -85,7 +85,6 @@ export default function CreateLinkId() {
                 },
                 body: JSON.stringify({ username }),
             });
-            setLoading(false);
             if (!res.ok) {
                 try {
                     const data = await res.json();
@@ -97,9 +96,10 @@ export default function CreateLinkId() {
             }
             window.location.reload();
         } catch (error) {
-            setLoading(false);
             console.error("Failed to create LinkID:", error);
             alert("Failed to create LinkID. Please try again.");
+        } finally {
+            setLoading(false);
         }
     }
 

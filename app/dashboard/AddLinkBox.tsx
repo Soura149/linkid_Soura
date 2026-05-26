@@ -15,26 +15,7 @@ import toast from "react-hot-toast";
 
 import { validateUrl } from "@/lib/urlValidation";
 import type { Link as ProfileLink } from "@/app/[username]/types/type";
-import { PLATFORM_ICONS } from "@/lib/platformIcons";
-
-const formatLabel = (key: string) => {
-    const exceptions: Record<string, string> = {
-        github: "GitHub",
-        linkedin: "LinkedIn",
-        x: "X (Twitter)",
-        youtube: "YouTube",
-        leetcode: "LeetCode",
-        devto: "Dev.to",
-    };
-    return exceptions[key] || key.charAt(0).toUpperCase() + key.slice(1);
-};
-
-const POPULAR_PLATFORMS = [
-    ...Object.keys(PLATFORM_ICONS)
-        .filter((key) => key !== "website" && key !== "portfolio")
-        .map((key) => ({ value: key, label: formatLabel(key) })),
-    { value: "website", label: "Personal Website / Other" },
-];
+import { formatLabel, POPULAR_PLATFORMS } from "@/lib/platformHelpers";
 
 /**
  * AddLinkBox Component
