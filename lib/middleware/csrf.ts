@@ -11,6 +11,7 @@ const CSRF_PROTECTED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const CSRF_EXCLUDED_PATH_PREFIXES = [
     "/api/auth",
     "/api/csrf",
+    "/api/contact-us",
     "/api/links/click",
     "/api/analytics/aggregate",
 ];
