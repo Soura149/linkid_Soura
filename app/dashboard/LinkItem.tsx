@@ -58,7 +58,7 @@ export function LinkItem({
             return toast.error(validation.error);
         }
 
-        if (isKnownPlatform(link.platform) && !validatePlatformUrl(link.platform, normalizeUrl(url))) {
+        if (isKnownPlatform(link.platform) && !validatePlatformUrl(link.platform, url)) {
             return toast.error(`Please enter a valid ${link.label || link.platform} link`);
         }
 
