@@ -60,7 +60,6 @@ export async function PUT(
     }
 
     const finalUrl = validation.normalizedUrl;
-    data.url = finalUrl;
 
     const platformForValidation = explicitPlatform || (isKnownPlatform(link.platform) ? link.platform : detectPlatform(finalUrl));
 
@@ -70,6 +69,8 @@ export async function PUT(
         { status: 400 },
       );
     }
+
+    data.url = finalUrl;
   }
 
   if (typeof url === "string" || typeof label === "string" || platform !== undefined) {

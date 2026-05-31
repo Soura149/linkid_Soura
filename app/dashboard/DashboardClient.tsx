@@ -8,7 +8,6 @@ import type { Link as ProfileLink } from "@/app/[username]/types/type";
 import { LinkIdCard } from "./LinkIdCard";
 import { AnalyticsOverview } from "./AnalyticsOverview";
 
-
 export default function DashboardClient({
     username,
     initialLinks,
@@ -40,8 +39,12 @@ export default function DashboardClient({
             });
 
             if (!response.ok) {
-                const data = await response.json();
-                toast.error(data.error ?? "Failed to update link");
+                try {
+                    const data = await response.json();
+                    toast.error(data.error ?? "Failed to update link");
+                } catch {
+                    toast.error("Failed to update link");
+                }
                 return false;
             }
 

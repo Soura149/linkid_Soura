@@ -58,6 +58,10 @@ export function LinkItem({
     const handlePlatformChange = (newPlatform: string) => {
         setPlatform(newPlatform);
 
+        // We intentionally read the stale 'platform' state here (the state before this change)
+        // because setPlatform's state update is scheduled for the next render. This allows us
+        // to check if the user had left the label as the default/previous platform name,
+        // and if so, auto-update the display name to the new platform label.
         const prevPlatformLabel = formatLabel(platform);
         if (
             !label.trim() ||
@@ -81,6 +85,10 @@ export function LinkItem({
         const validation = validateUrl(url);
         if (!validation.valid) {
             return toast.error(validation.error);
+        }
+
+        if (isKnownPlatform(platform) && !validatePlatformUrl(platform, url)) {
+            return toast.error(`Enter a valid link for ${formatLabel(platform)}`);
         }
 
         const trimmedLabel = label.trim();
